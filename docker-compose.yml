@@ -10,7 +10,6 @@ services:
       - '3306'
     volumes:
       - ./initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
-      - ${MYSQL_VOLUME_PATH}/snippet-db:/var/lib/mysql
     env_file:
       - .env
 volumes:
