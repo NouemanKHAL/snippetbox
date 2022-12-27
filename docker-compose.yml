@@ -1,0 +1,17 @@
+version: '3.3'
+
+services:
+  db:
+    image: mysql:8
+    restart: always
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - ./initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+      - ${MYSQL_VOLUME_PATH}/snippet-db:/var/lib/mysql
+    env_file:
+      - .env
+volumes:
+  snippet-db:
