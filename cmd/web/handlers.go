@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -22,15 +21,9 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files := []string{
-		"./ui/html/base.go.tmpl",
-		"./ui/html/partials/nav.go.tmpl",
-		"./ui/html/pages/home.go.tmpl",
-	}
-
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, err)
+	ts, ok := app.templateCache["home.go.tmpl"]
+	if !ok {
+		app.notFound(w)
 		return
 	}
 
@@ -61,15 +54,9 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files := []string{
-		"./ui/html/base.go.tmpl",
-		"./ui/html/partials/nav.go.tmpl",
-		"./ui/html/pages/view.go.tmpl",
-	}
-
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, err)
+	ts, ok := app.templateCache["view.go.tmpl"]
+	if !ok {
+		app.notFound(w)
 		return
 	}
 
