@@ -21,21 +21,11 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ts, ok := app.templateCache["home.go.tmpl"]
-	if !ok {
-		app.notFound(w)
-		return
-	}
-
 	data := &templateData{
 		Snippets: snippets,
 	}
 
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, err)
-	}
-
+	app.render(w, http.StatusOK, "home.go.tmpl", data)
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
@@ -54,20 +44,11 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ts, ok := app.templateCache["view.go.tmpl"]
-	if !ok {
-		app.notFound(w)
-		return
-	}
-
 	data := &templateData{
 		Snippet: snippet,
 	}
 
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, err)
-	}
+	app.render(w, http.StatusOK, "view.go.tmpl", data)
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
