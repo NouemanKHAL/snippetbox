@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/NouemanKHAL/snippetbox/internal/models"
+	"github.com/go-playground/form/v4"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -19,6 +20,7 @@ type application struct {
 	config        config
 	snippets      *models.SnippetModel
 	templateCache map[string]*template.Template
+	formDecoder   *form.Decoder
 }
 
 type config struct {
@@ -52,12 +54,16 @@ func main() {
 	}
 	defer db.Close()
 
+	// initialize a decoder instance
+	formDecoder := form.NewDecoder()
+
 	app := application{
 		errorLog:      errorLog,
 		infoLog:       infoLog,
 		config:        cfg,
 		snippets:      &models.SnippetModel{DB: db},
 		templateCache: templateCache,
+		formDecoder:   formDecoder,
 	}
 
 	// run server
