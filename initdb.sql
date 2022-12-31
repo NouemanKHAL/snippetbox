@@ -16,6 +16,16 @@ CREATE TABLE snippets (
 -- Add an index on the created column.
 CREATE INDEX idx_snippets_created ON snippets(created);
 
+-- Create sessions table --
+CREATE TABLE sessions (
+    token CHAR(43) PRIMARY KEY,
+    data BLOB NOT NULL,
+    expiry TIMESTAMP(6) NOT NULL
+);
+
+-- Add an index on the expiry column --
+CREATE INDEX sessions_expiry_idx ON sessions (expiry);
+
 -- Add some dummy records (which we'll use in the next couple of chapters).
 INSERT INTO snippets (title, content, created, expires) VALUES (
     'An old silent pond',
