@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"unicode/utf8"
 
 	"github.com/NouemanKHAL/snippetbox/internal/models"
+	"github.com/NouemanKHAL/snippetbox/internal/validator"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -18,10 +18,10 @@ const (
 )
 
 type snippetCreateForm struct {
-	Title            string
-	Content          string
-	Expires          int
-	ValidationErrors map[string]string
+	Title   string
+	Content string
+	Expires int
+	validator.Validator
 }
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -83,27 +83,22 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 	}
 
 	form := snippetCreateForm{
-		Title:            r.PostForm.Get("title"),
-		Content:          r.PostForm.Get("content"),
-		Expires:          expires,
-		ValidationErrors: make(map[string]string),
+		Title:   r.PostForm.Get("title"),
+		Content: r.PostForm.Get("content"),
+		Expires: expires,
 	}
 
-	if form.Title == "" {
-		form.ValidationErrors["title"] = "this field cannot be blank"
-	} else if utf8.RuneCountInString(form.Title) > 100 {
-		form.ValidationErrors["title"] = "this field cannot be more than 100 characters long"
-	}
+	// title validation
+	form.CheckField(validator.NotBlank(form.Title), "title", "this field cannot be blank")
+	form.CheckField(validator.MaxChars(form.Title, 100), "title", "this field cannot be more than 100 characters long")
 
-	if form.Content == "" {
-		form.ValidationErrors["content"] = "this field cannot be blank"
-	}
+	// content validation
+	form.CheckField(validator.NotBlank(form.Content), "content", "this field cannot be blank")
 
-	if form.Expires != 1 && form.Expires != 7 && form.Expires != 365 {
-		form.ValidationErrors["expires"] = "this field must equal 1, 7 or 365"
-	}
+	// expires validation
+	form.CheckField(validator.PermittedInt(form.Expires, 1, 7, 365), "expires", "this field must equal 1, 7 or 365")
 
-	if len(form.ValidationErrors) > 0 {
+	if !form.Valid() {
 		data := app.newTemplateData(r)
 		data.Form = form
 		app.render(w, http.StatusUnprocessableEntity, createTemplateFilename, data)

@@ -4,21 +4,21 @@
 <form action='/snippet/create' method='POST'>
     <div>
         <label>Title:</label>
-        {{with .Form.ValidationErrors.title}}
+        {{with .Form.FieldErrors.title}}
             <label class='error'>{{.}}</label>
         {{end}}
         <input type='text' name='title' value='{{ .Form.Title }}'>
     </div>
     <div>
         <label>Content:</label>
-        {{with .Form.ValidationErrors.content}}
+        {{with .Form.FieldErrors.content}}
             <label class='error'>{{.}}</label>
         {{end}}
         <textarea name='content'>{{ .Form.Content }}</textarea>
     </div>
     <div>
         <label>Delete in:</label>
-        {{with .Form.ValidationErrors.expires}}
+        {{with .Form.FieldErrors.expires}}
             <label class='error'>{{.}}</label>
         {{end}}
         <input type='radio' name='expires' value='365' {{ if eq .Form.Expires 365}}checked{{ end }}> One Year
