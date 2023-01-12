@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/justinas/nosurf"
 )
@@ -59,34 +58,32 @@ func (app *application) requireAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		authenticatedID, ok := app.sessionManager.Get(r.Context(), authenticatedUserIDKey).(string)
-		if !ok {
-			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
-			return
-		}
-
-		id, err := strconv.ParseInt(authenticatedID, 10, 0)
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
-
-		exists, err := app.users.Exists(int(id))
-		if err != nil {
-			app.serverError(w, err)
-		}
-
-		if !exists {
-			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), "isAuthenticated", true)
-		r = r.WithContext(ctx)
 		// browsers should not cache pages that require auth
 		w.Header().Set("Cache-Control", "no-store")
 
 		next.ServeHTTP(w, r)
-
 	})
+}
+
+func (app *application) authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := app.sessionManager.GetInt(r.Context(), authenticatedUserIDKey)
+		if id == 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		exists, err := app.users.Exists(id)
+		if err != nil {
+			app.serverError(w, err)
+		}
+
+		if exists {
+			ctx := context.WithValue(r.Context(), isAuthenticatedContextKey, exists)
+			r = r.WithContext(ctx)
+		}
+
+		next.ServeHTTP(w, r)
+	})
+
 }

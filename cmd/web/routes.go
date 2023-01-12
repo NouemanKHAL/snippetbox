@@ -16,8 +16,8 @@ func (app *application) routes() http.Handler {
 
 	// middleware chains
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
-	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf)
-	auth := dynamic.Append(app.requireAuth)
+	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
+	protected := dynamic.Append(app.requireAuth)
 
 	// serve static assets
 	fileServer := http.FileServer(http.Dir(app.config.staticDir))
@@ -31,9 +31,9 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/user/login", dynamic.ThenFunc(app.userLogin))
 	router.Handler(http.MethodPost, "/user/login", dynamic.ThenFunc(app.userLoginPost))
 
-	router.Handler(http.MethodGet, "/snippet/create", auth.ThenFunc(app.snippetCreate))
-	router.Handler(http.MethodPost, "/snippet/create", auth.ThenFunc(app.snippetCreatePost))
-	router.Handler(http.MethodPost, "/user/logout", auth.ThenFunc(app.userLogoutPost))
+	router.Handler(http.MethodGet, "/snippet/create", protected.ThenFunc(app.snippetCreate))
+	router.Handler(http.MethodPost, "/snippet/create", protected.ThenFunc(app.snippetCreatePost))
+	router.Handler(http.MethodPost, "/user/logout", protected.ThenFunc(app.userLogoutPost))
 
 	return standard.Then(router)
 }
